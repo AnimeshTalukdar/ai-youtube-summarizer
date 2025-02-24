@@ -1,0 +1,4 @@
+youtube-transcript-api
+google-generativeai
+beautifulsoup4
+markdown
