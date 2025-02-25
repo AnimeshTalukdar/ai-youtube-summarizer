@@ -47,7 +47,27 @@ def get_url_arguments(url):
 
 
 def get_subs_text(video_id):
-    transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+    trasncript_versions = YouTubeTranscriptApi.list_transcripts(video_id)
+    languages = set()
+    for transcript in trasncript_versions:
+        languages.add(transcript.language_code)
+        # print(transcript.language_code)
+
+    # if english is not available, get the first available language
+    if 'en' in languages:
+        transcript = trasncript_versions.find_transcript(['en'])
+    elif 'hi' in languages:
+        transcript = trasncript_versions.find_transcript(['hi'])
+    elif 'bn' in languages:
+        transcript = trasncript_versions.find_transcript(['bn'])
+    elif len(languages) > 0:
+        transcript = trasncript_versions.find_transcript(list(languages)[0])
+    else:
+        print("transcript not available ")
+        sys.exit(0)
+    
+    transcript = transcript.fetch()
+
     text = " ".join([line['text'] for line in transcript])
     return text
 
@@ -55,7 +75,7 @@ def get_text_from_video(url):
     arguments = get_url_arguments(url)
     if 'v' not in arguments:
         print("No video ID found in the URL")
-        sys.exit(1)
+        sys.exit(0)
     video_id = arguments['v'][0]
 
     return get_subs_text(video_id)
@@ -72,7 +92,11 @@ def create_window_with_text(text):
 url = input()
 if "youtube" not in url:
     print("Not a youtube video")
-    sys.exit(1)
-text = summarize_text(get_text_from_video(url))
-print(markdown_to_text(text))
+    sys.exit(0)
+try:
+    text = summarize_text(get_text_from_video(url))
+    print(markdown_to_text(text))
+except Exception as e:
+    print(e)
+
 # create_window_with_text(text)
